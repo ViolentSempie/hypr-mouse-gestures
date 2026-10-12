@@ -1,0 +1,20 @@
+# Compiled plugin and intermediate build files
+*.so
+*.o
+*.a
+*.d
+*.lo
+*.la
+*.gch
+
+# Debug output and core dumps
+*.log
+core
+core.*
+
+# Local tooling
+.cache/
+compile_commands.json
+.clangd/
+*~
+*.swp
