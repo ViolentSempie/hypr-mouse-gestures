@@ -1,0 +1,14 @@
+[repository]
+name = "hypr-mouse-gestures"
+authors = ["ViolentSempie"]
+commit_pins = [
+    ["efb50993780079460b0cbed1363e2166a2de1d9f", "296047e2cdbc0c3014e3eec9f1c923561200fa82"], # 0.56.2
+]
+
+[hypr-mouse-gestures]
+description = "Mouse gestures. Middle-button drag swipes workspaces."
+authors = ["ViolentSempie"]
+output = "hypr-mouse-gestures.so"
+build = [
+    "make all",
+]
