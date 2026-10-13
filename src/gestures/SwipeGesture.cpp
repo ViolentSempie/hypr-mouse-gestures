@@ -189,6 +189,12 @@ void CSwipeGesture::onMotion(Event::SCallbackInfo& info) {
     const double step = pos.x - m_last.x;
     m_last            = pos;
     const double signedStep = swipeInverted() ? -step : step;
+
+    // Direction lock is for trackpad jitter. This drag tracks the pointer, so
+    // reversing past the start has to reveal the other workspace without a
+    // release. Clear the lock before every update; Hyprland sets it again
+    // from the delta we just applied.
+    g_pUnifiedWorkspaceSwipe->m_initialDirection = 0;
     g_pUnifiedWorkspaceSwipe->update(g_pUnifiedWorkspaceSwipe->m_delta + cursorToSwipe(signedStep));
 
     // Keep follow_mouse from focusing whatever is under the cursor mid-swipe.
