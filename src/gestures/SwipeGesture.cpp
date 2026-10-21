@@ -65,20 +65,39 @@ namespace {
 
     // Hyprland commits a swipe at workspace_swipe_cancel_ratio (half a workspace).
     // The pointer tracking above stays 1:1. On release, a drag that has already
-    // revealed a quarter of the next workspace is treated as committed.
+    // revealed a quarter of the next workspace, or a fast flick, is committed.
+    //
+    // end() then animates from the current offset to that settled frame. Moving
+    // onto another monitor while the animation is running drops it halfway, so
+    // the previous workspace shows through until another drag resets the
+    // offsets. Park the workspaces on the settled frame first; the animation
+    // then has nowhere to travel.
     void finishSwipe() {
         if (!g_pUnifiedWorkspaceSwipe->isGestureInProgress())
             return;
 
         static auto DISTANCE = CConfigValue<Config::INTEGER>("gestures:workspace_swipe_distance");
+        static auto FOREVER  = CConfigValue<Config::INTEGER>("gestures:workspace_swipe_forever");
+        static auto FORCE    = CConfigValue<Config::INTEGER>("gestures:workspace_swipe_min_speed_to_force");
         const double distance = DISTANCE.good() ? static_cast<double>(std::max<int64_t>(1, *DISTANCE)) : 1.0;
 
         constexpr double kCommitFraction = 0.25;
         auto&            delta           = g_pUnifiedWorkspaceSwipe->m_delta;
-        if (std::abs(delta) >= distance * kCommitFraction)
+        const bool       pastFraction    = std::abs(delta) >= distance * kCommitFraction;
+        const bool       flung           = FORCE.good() && *FORCE > 0 && g_pUnifiedWorkspaceSwipe->m_avgSpeed >= static_cast<float>(*FORCE) && std::abs(delta) >= 2.0;
+        if (pastFraction || flung)
             delta = std::copysign(distance, delta);
 
-        g_pUnifiedWorkspaceSwipe->end();
+        // A full delta with swipe-forever commits inside update() and opens a
+        // new gesture. Leave that path to end(); this park is for one settle.
+        const bool forever = FOREVER.good() && *FOREVER;
+        if (!forever && std::abs(delta) >= distance) {
+            g_pUnifiedWorkspaceSwipe->m_initialDirection = 0;
+            g_pUnifiedWorkspaceSwipe->update(delta);
+        }
+
+        if (g_pUnifiedWorkspaceSwipe->isGestureInProgress())
+            g_pUnifiedWorkspaceSwipe->end();
     }
 
     bool compositorReady() {
