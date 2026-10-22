@@ -2,7 +2,7 @@
 name = "hypr-mouse-gestures"
 authors = ["ViolentSempie"]
 commit_pins = [
-    ["efb50993780079460b0cbed1363e2166a2de1d9f", "d3ef04d3baa13307a5eb808997e310a9acbf2830"], # 0.56.2
+    ["efb50993780079460b0cbed1363e2166a2de1d9f", "003d49394902badb035a6b3403feba8b8993cf4e"], # 0.56.2
 ]
 
 [hypr-mouse-gestures]
