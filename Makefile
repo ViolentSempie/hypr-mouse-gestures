@@ -4,7 +4,9 @@ SRC      := src/main.cpp src/gestures/SwipeGesture.cpp
 
 PKG_CFLAGS := $(shell pkg-config --cflags hyprland)
 CXXFLAGS   := -std=c++26 -fPIC -shared -O2 -Wall -Wextra -Wno-unused-parameter
-CPPFLAGS   := $(PKG_CFLAGS)
+# Hyprland's headers use partial designated initializers. Marking those
+# include paths as system headers keeps that warning out of this build.
+CPPFLAGS   := $(patsubst -I%,-isystem %,$(PKG_CFLAGS))
 
 .PHONY: all clean
 
