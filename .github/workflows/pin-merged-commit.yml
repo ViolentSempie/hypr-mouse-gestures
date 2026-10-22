@@ -1,0 +1,41 @@
+name: Pin merged commit
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pin-hyprpm
+  cancel-in-progress: false
+
+jobs:
+  pin:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Point the newest pin at the merged commit
+        id: pin
+        run: |
+          sha=$(git rev-parse HEAD)
+          python3 .github/scripts/update-commit-pin.py "$sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push the pin
+        env:
+          SHA: ${{ steps.pin.outputs.sha }}
+        run: |
+          git diff --quiet -- hyprpm.toml && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add hyprpm.toml
+          git commit -m "chore: pin plugin to ${SHA}"
+          git push
